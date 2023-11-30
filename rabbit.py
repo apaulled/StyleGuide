@@ -14,8 +14,6 @@ def dispatch_color(piece_color):
 
     channel.queue_declare(queue='colors')
 
-    color_averages = piece_color['color']
-    piece_color['color'] = color_averages
     channel.basic_publish(exchange='',
                           routing_key='colors',
                           body=json.dumps(piece_color))
@@ -47,8 +45,12 @@ def callback(ch, method, properties, body):
 
     image = Image.open(url)
 
+    key_colors = image_processing.key_colors(image)
+
     piece_color = {'id': uuid,
-                   'color': image_processing.primary_color(image)}
+                   'primaryColor': key_colors[0],
+                   'secondaryColor': key_colors[1],
+                   'averageColor': image_processing.average_color(image)}
 
     print(f" [x] Received {uuid}")
 
