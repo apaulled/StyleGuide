@@ -28,6 +28,8 @@ def consume_queues():
     channel = connection.channel()
 
     channel.queue_declare(queue='pieces')
+    channel.queue_declare(queue='outfit_requests')
+    channel.queue_declare(queue='outfit_results')
 
     channel.basic_consume(queue='pieces',
                           auto_ack=True,
