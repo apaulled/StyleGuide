@@ -5,7 +5,7 @@ import sys
 
 from PIL import Image
 
-from src import image_processing
+from src import image_processing, outfit_recs
 
 
 def dispatch_color(piece_color):
@@ -23,6 +23,21 @@ def dispatch_color(piece_color):
     connection.close()
 
 
+def dispatch_outfit(outfit):
+    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+    channel = connection.channel()
+
+    channel.queue_declare(queue='outfit_results')
+
+    channel.basic_publish(exchange='',
+                          routing_key='outfit_results',
+                          body=json.dumps(outfit))
+
+    print(f" [x] Sent '{outfit}'")
+
+    connection.close()
+
+
 def consume_queues():
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = connection.channel()
@@ -31,15 +46,46 @@ def consume_queues():
     channel.queue_declare(queue='outfit_requests')
     channel.queue_declare(queue='outfit_results')
 
+    channel.basic_consume(queue='outfit_requests',
+                          auto_ack=True,
+                          on_message_callback=outfit_callback)
+
     channel.basic_consume(queue='pieces',
                           auto_ack=True,
-                          on_message_callback=callback)
+                          on_message_callback=piece_callback)
 
     print(' [*] Waiting for messages. To exit press CTRL+C')
     channel.start_consuming()
 
 
-def callback(ch, method, properties, body):
+def outfit_callback(ch, method, properties, body):
+    # print(body)
+    decoded = json.loads(body.decode())
+    uuid = decoded['userId']
+    color = decoded['color']
+    closet = decoded['userCloset']
+    del(closet['userId'])
+
+    print(closet)
+
+    outfit = outfit_recs.color_outfit(closet, color)
+    print(outfit)
+
+    response = {'userId': uuid,
+                'headWear': outfit['headWear']['id'],
+                'top': outfit['tops']['id'],
+                'bottom': outfit['bottoms']['id'],
+                'shoe': outfit['shoes']['id'],
+                'outerWear': outfit['outerWear']['id'],
+                'accessory': outfit['accessories']['id']
+                }
+
+    print(f" [x] Received {decoded}")
+
+    dispatch_outfit(response)
+
+
+def piece_callback(ch, method, properties, body):
     # print(body)
     decoded = json.loads(body.decode())
     uuid = decoded['id']
