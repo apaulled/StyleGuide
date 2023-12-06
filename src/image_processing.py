@@ -6,7 +6,9 @@ from src.color_config import ColorConfig
 
 def pick_color(pixel, config):
     if abs(pixel[0] - pixel[1]) < 10 and abs(pixel[1] - pixel[2]) < 10 and abs(pixel[2] - pixel[0]) < 10:
-        return 'BROWN'
+        if pixel[0] > 100:
+            return 'GRAY'
+        return 'BLACK'
 
     colors = ColorBucket()
 
@@ -37,12 +39,13 @@ def key_colors(image):
     for i in range(rgb.width):
         for j in range(rgb.height):
             pixel = rgb.getpixel((i, j))
-            if not (pixel[0] > 240 and pixel[1] > 240 and pixel[2] > 240):
+            if not (pixel[0] > 220 and pixel[1] > 220 and pixel[2] > 220):
                 # print(pixel)
                 color = pick_color(pixel, config)
+                # print(color)
                 colors.add_pixel(color)
     # im.show()
-    print(colors)
+    # print(colors)
     return colors.get_key_colors()
 
 

@@ -62,22 +62,25 @@ def outfit_callback(ch, method, properties, body):
     # print(body)
     decoded = json.loads(body.decode())
     uuid = decoded['userId']
-    color = decoded['color']
     closet = decoded['userCloset']
     del(closet['userId'])
 
     print(closet)
 
-    outfit = outfit_recs.color_outfit(closet, color)
+    if 'color' in decoded:
+        outfit = outfit_recs.color_outfit(closet, decoded['color'])
+    else:
+        outfit = outfit_recs.theme_outfit(closet, decoded['theme'])
+
     print(outfit)
 
     response = {'userId': uuid,
-                'headWear': outfit['headWear']['id'],
-                'top': outfit['tops']['id'],
-                'bottom': outfit['bottoms']['id'],
-                'shoe': outfit['shoes']['id'],
-                'outerWear': outfit['outerWear']['id'],
-                'accessory': outfit['accessories']['id']
+                'headWear': outfit['headWear'],
+                'top': outfit['tops'],
+                'bottom': outfit['bottoms'],
+                'shoe': outfit['shoes'],
+                'outerWear': outfit['outerWear'],
+                'accessory': outfit['accessories']
                 }
 
     print(f" [x] Received {decoded}")
