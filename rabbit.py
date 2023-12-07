@@ -59,29 +59,24 @@ def consume_queues():
 
 
 def outfit_callback(ch, method, properties, body):
-    # print(body)
     decoded = json.loads(body.decode())
     uuid = decoded['userId']
     closet = decoded['userCloset']
-    del(closet['userId'])
-
-    print(closet)
+    del closet['userId']
 
     if 'color' in decoded:
-        outfit = outfit_recs.color_outfit(closet, decoded['color'])
+        outfits = outfit_recs.color_outfit(closet, decoded['color'])
     else:
-        outfit = outfit_recs.theme_outfit(closet, decoded['theme'])
-
-    print(outfit)
+        outfits = outfit_recs.theme_outfit(closet, decoded['theme'])
 
     response = {'userId': uuid,
-                'headWear': outfit['headWear'],
-                'top': outfit['tops'],
-                'bottom': outfit['bottoms'],
-                'shoe': outfit['shoes'],
-                'outerWear': outfit['outerWear'],
-                'accessory': outfit['accessories']
-                }
+                'outfits': [{'headWear': outfit['headWear'],
+                             'top': outfit['tops'],
+                             'bottom': outfit['bottoms'],
+                             'shoe': outfit['shoes'],
+                             'outerWear': outfit['outerWear'],
+                             'accessory': outfit['accessories']
+                             } for outfit in outfits]}
 
     print(f" [x] Received {decoded}")
 
